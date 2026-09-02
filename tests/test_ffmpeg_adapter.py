@@ -15,7 +15,7 @@ import numpy as np
 
 # pyright: reportMissingImports=false
 # pylint: disable=import-error
-from pytest import fixture, raises
+from pytest import approx, fixture, raises
 
 from spleeter import SpleeterError
 from spleeter.audio.adapter import AudioAdapter
@@ -27,6 +27,8 @@ TEST_AUDIO_DESCRIPTOR = "audio_example.mp3"
 TEST_OFFSET = 0
 TEST_DURATION = 600.0
 TEST_SAMPLE_RATE = 44100
+TEST_EXPECTED_SAMPLES = 479832
+TEST_EXPECTED_DURATION = TEST_EXPECTED_SAMPLES / TEST_SAMPLE_RATE
 
 
 @fixture(scope="session")
@@ -56,7 +58,7 @@ def test_load(audio_data):
     assert waveform is not None
     assert waveform.dtype == np.dtype("float32")
     assert len(waveform.shape) == 2
-    assert waveform.shape[0] == 479832
+    assert waveform.shape[0] == TEST_EXPECTED_SAMPLES
     assert waveform.shape[1] == 2
 
 
@@ -71,9 +73,11 @@ def test_save(adapter, audio_data):
     with TemporaryDirectory() as directory:
         path = join(directory, "ffmpeg-save.mp3")
         adapter.save(path, audio_data[0], audio_data[1])
-        probe = ffmpeg.probe(TEST_AUDIO_DESCRIPTOR)
+        probe = ffmpeg.probe(path)
         assert len(probe["streams"]) == 1
         stream = probe["streams"][0]
         assert stream["codec_type"] == "audio"
         assert stream["channels"] == 2
-        assert stream["duration"] == "10.919184"
+        # Tolerance rather than an exact duration: mp3 encoder delay/padding is
+        # reported differently across ffmpeg versions.
+        assert float(stream["duration"]) == approx(TEST_EXPECTED_DURATION, abs=0.1)
