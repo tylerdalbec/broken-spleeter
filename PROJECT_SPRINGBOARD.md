@@ -3,7 +3,9 @@
 
 **Repository:** `tylerdalbec/broken-spleeter`
 
-**Status:** Working starting point for design and implementation. This is intentionally **not** an authoritative roadmap or frozen specification. It captures the current concept, likely high-value directions, and technical assumptions so they can be challenged and refined once a coding agent is working directly against the local repository.
+**Status:** Working starting point for design and implementation.
+This is intentionally **not** an authoritative roadmap or frozen specification.
+It captures the current concept, likely high-value directions, and technical assumptions so they can be challenged and refined once a coding agent is working directly against the local repository.
 
 ---
 
@@ -11,9 +13,11 @@
 
 Broken Spleeter is an offline experimental audio-processing tool built around deliberately abusing Spleeter's pretrained source-separation models.
 
-Instead of treating source separation as an accuracy problem, the project treats the model as a structured artifact generator. The goal is to make Spleeter produce useful mistakes: false vocal detections, unstable spectral residues, displaced masks, contradictory classifications, recursively degraded stems, and other material that can become samples or sound-design source material.
+Instead of treating source separation as an accuracy problem, the project treats the model as a structured artifact generator.
+The goal is to make Spleeter produce useful mistakes: false vocal detections, unstable spectral residues, displaced masks, contradictory classifications, recursively degraded stems, and other material that can become samples or sound-design source material.
 
-The musical target is not "better stems." The target is **repeatable, controllable model failure**.
+The musical target is not "better stems."
+The target is **repeatable, controllable model failure**.
 
 The project is primarily intended for experimental electronic music workflows such as deconstructed club, IDM, glitch, collage, resampling, and related production techniques where unusual intermediate material is often more valuable than faithful reconstruction.
 

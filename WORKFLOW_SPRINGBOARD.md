@@ -58,7 +58,8 @@ Upstream compatibility should not constrain architecture, cleanup, dependency ch
 
 The upstream repository is primarily relevant as provenance and as a historical reference for inherited behavior.
 
-At the time of drafting, the inherited upstream baseline was `c8854001ac8acad34a9bc2bd15f28475541828b1` (Deezer Spleeter `master`). The bootstrap agent should verify and record that provenance, but there is no current need to maintain an `upstream` remote or an upstream-sync workflow.
+At the time of drafting, the inherited upstream baseline was `c8854001ac8acad34a9bc2bd15f28475541828b1` (Deezer Spleeter `master`).
+The bootstrap agent should verify and record that provenance, but there is no current need to maintain an `upstream` remote or an upstream-sync workflow.
 
 ---
 
@@ -348,11 +349,12 @@ If the project expands materially beyond the scope described in `PROJECT_SPRINGB
 
 ## 9. Python Environment: Known Issue, Open Decision
 
-> **Resolved 2026-09-02.** Python **3.11.16**, supplied by **uv**, in a project-local
-> `.venv`. The system 3.14.3 was left untouched. Poetry was retained as the dependency
-> manager. The hypothesis below was correct in substance; see `ENVIRONMENT.md` for the
-> actual commands. One assumption was wrong: the inherited lockfile could not install on
-> Windows at all, and `pyproject.toml` now carries platform markers to fix that.
+> **Resolved 2026-09-02.**
+> Python **3.11.16**, supplied by **uv**, in a project-local `.venv`.
+> The system 3.14.3 was left untouched.
+> Poetry was retained as the dependency manager.
+> The hypothesis below was correct in substance; see `ENVIRONMENT.md` for the actual commands.
+> One assumption was wrong: the inherited lockfile could not install on Windows at all, and `pyproject.toml` now carries platform markers to fix that.
 
 The development workstation currently uses Python 3.14.3.
 
@@ -532,9 +534,9 @@ The cloud agent should not begin implementing corruption systems, GUI features, 
 
 ## 14. Suggested First Windows Session
 
-> **Completed 2026-09-02.** The brief used was `WINDOWS_INIT_SESSION.md` (retained as
-> history); the outcomes are in `ENVIRONMENT.md`. Every topic listed below was covered
-> except GPU expectations, which remain open.
+> **Completed 2026-09-02.**
+> The brief used was `WINDOWS_INIT_SESSION.md` (retained as history); the outcomes are in `ENVIRONMENT.md`.
+> Every topic listed below was covered except GPU expectations, which remain open.
 
 After the cloud bootstrap is merged or otherwise accepted, clone the cleaned repository onto the Windows workstation.
 
@@ -589,13 +591,11 @@ Questions worth resolving include:
 - Which environment details need to be recorded for reproducibility?
 
 > **All resolved 2026-09-02** — recorded in `ENVIRONMENT.md`.
-> Python 3.11.16 · interpreter managed by uv · Poetry retained (>= 2.0, required to read
-> the lock) · the lockfile was **not** usable as-is on Windows and now carries platform
-> markers · no modernization was needed beyond those markers.
+> Python 3.11.16 · interpreter managed by uv · Poetry retained (>= 2.0, required to read the lock) · the lockfile was **not** usable as-is on Windows and now carries platform markers · no modernization was needed beyond those markers.
 >
-> **Still open:** GPU support. TensorFlow 2.12.1 has no native Windows GPU path, so all
-> work is CPU-bound. Resolving it trades against baseline fidelity and is a real decision,
-> not a cleanup task.
+> **Still open:** GPU support.
+> TensorFlow 2.12.1 has no native Windows GPU path, so all work is CPU-bound.
+> Resolving it trades against baseline fidelity and is a real decision, not a cleanup task.
 
 ### Agent instructions
 
@@ -610,16 +610,13 @@ Questions worth resolving include:
 - At what point should audio/render verification become explicit?
 - Does cloud Linux execution differ enough from the Windows workstation to justify formal machine-scoping rules?
 
-> **Partly resolved 2026-09-02.** The full inherited suite passes on Windows and the
-> verified command set is in `ENVIRONMENT.md`. The smallest useful baseline is
-> `pytest tests/test_ffmpeg_adapter.py` plus `pytest tests/test_separator.py -k 2stems`,
-> which avoids ~340 MB of checkpoint downloads.
+> **Partly resolved 2026-09-02.**
+> The full inherited suite passes on Windows and the verified command set is in `ENVIRONMENT.md`.
+> The smallest useful baseline is `pytest tests/test_ffmpeg_adapter.py` plus `pytest tests/test_separator.py -k 2stems`, which avoids ~340 MB of checkpoint downloads.
 >
-> **Still open:** which inherited tests remain *meaningful* once Broken Spleeter features
-> exist — the suite currently tests ordinary Spleeter, not deliberate failure. Audio/render
-> verification is also still informal; there is no automated check that a render is
-> non-silent or matches a reference. Linux has not been run since the fork, so
-> machine-scoping remains unanswered.
+> **Still open:** which inherited tests remain *meaningful* once Broken Spleeter features exist — the suite currently tests ordinary Spleeter, not deliberate failure.
+> Audio/render verification is also still informal; there is no automated check that a render is non-silent or matches a reference.
+> Linux has not been run since the fork, so machine-scoping remains unanswered.
 
 ### Git workflow
 
@@ -633,9 +630,7 @@ These are workflow questions, not project-feature roadmap questions.
 
 ## 16. Likely Bootstrap End State
 
-> **Reached 2026-09-02**, with two additions the list below did not anticipate:
-> `ENVIRONMENT.md` as the live environment reference, and platform markers in
-> `pyproject.toml` / `poetry.lock` making Windows a first-class target.
+> **Reached 2026-09-02**, with two additions the list below did not anticipate: `ENVIRONMENT.md` as the live environment reference, and platform markers in `pyproject.toml` / `poetry.lock` making Windows a first-class target.
 
 If the initial bootstrap succeeds, the repository should have:
 
