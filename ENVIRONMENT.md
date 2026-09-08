@@ -134,6 +134,51 @@ pytest tests/test_separator.py -k 2stems          # separation, without pulling 
 `test_separator.py` parametrizes over 2stems, 4stems and 5stems.
 Running it unfiltered downloads all three checkpoints (~417 MB total).
 
+### 3.4 Render determinism
+
+Separation is **bitwise reproducible across processes** on this machine, verified 2026-09-08 at both the NumPy array level and the written WAV.
+FFmpeg embeds no varying metadata in the WAV output, so file hashes are a valid check.
+
+This matters more here than in ordinary Spleeter use.
+The project's premise is *repeatable* model failure, so if unmodified inference were not reproducible, every later question about whether a seed reproduces a sound would be confounded.
+
+`tf.config.experimental.enable_op_determinism()` is **not** needed and should not be enabled — it carries a speed cost for a guarantee already held.
+
+#### Periodic check
+
+Run two full renders and compare them to each other:
+
+```powershell
+spleeter separate -p spleeter:2stems -o output\det_a audio_example.mp3
+spleeter separate -p spleeter:2stems -o output\det_b audio_example.mp3
+$a = (Get-FileHash output\det_a\audio_example\*.wav | Sort-Object Path).Hash
+$b = (Get-FileHash output\det_b\audio_example\*.wav | Sort-Object Path).Hash
+if (Compare-Object $a $b) { "DIFFERENT" } else { "identical" }
+```
+
+`output\det_a` and `output\det_b` are disposable; `output/` is gitignored.
+
+This is a **self-comparison** and never goes stale.
+It stays valid after a TensorFlow bump, a checkpoint change, or a threading change, because it pins no absolute value — it only asks whether two runs under whatever conditions currently hold agree with each other.
+
+It is deliberately **not** a pytest gate.
+A failing build is the wrong way to learn about this, and the check costs two full renders.
+Run it when something upstream of inference changes, or when a seed stops reproducing a sound and the cause is unclear.
+
+#### Absolute hashes, for drift diagnosis only
+
+SHA-256 of the 2stems render of `audio_example.mp3`, recorded 2026-09-08:
+
+| Stem | Hash |
+|---|---|
+| `vocals.wav` | `a4ceacf9e24656693d344dd0231b3ade323ab2be5256bffd65c5c0472bff30a3` |
+| `accompaniment.wav` | `a3fd23625abe7003926255d65261c0a54acdb0cbd97f2efc597d8a67626a79f1` |
+
+Valid only for TensorFlow 2.12.1 on CPU, the `2stems` checkpoint from the upstream `v1.4.0` release, and FFmpeg 9.0.1.
+
+These are a diagnostic, not a guarantee.
+A change here is **expected** if any of those conditions change and does not by itself indicate a problem — it answers "did the baseline move?", which is a different question from "is inference deterministic?".
+
 ---
 
 ## 4. Pretrained models
@@ -169,6 +214,12 @@ Note that the environment could **not** be built from the inherited lock as it s
 
 These markers are load-bearing.
 Removing them breaks `poetry install` on Windows.
+
+**If a future change touches the TensorFlow pin, re-verify by installing from the lock into a *fresh* venv, not the existing one.**
+An already-satisfied environment reports success without ever exercising platform selection, so the check passes while the lock is still broken for anyone starting clean.
+
+The relock that added these markers used plain `poetry lock`; Poetry 2.0 preserves existing versions and only `--regenerate` re-resolves.
+It added exactly one package and drifted zero versions.
 
 ### GPU
 

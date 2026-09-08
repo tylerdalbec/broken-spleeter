@@ -21,15 +21,27 @@ When something breaks in code this project did not write, knowing what upstream 
 - `ENVIRONMENT.md` — **live and authoritative.**
   Setup, verified commands, platform support, known issues.
   Keep it current; do not duplicate its content elsewhere.
+- `ROADMAP.md` — **live.** What is planned, what is deferred and why.
+  Deferred items carry a revisit trigger; none of them gate anything.
+  Item IDs are stable and citable, and are not reused once retired.
+- `CHANGELOG.md` — **record.** What actually happened, newest first, grouped by session.
+  Historical entries are not rewritten.
 - `PROJECT_SPRINGBOARD.md` — technical and product concept.
   Design context, **not** a specification.
+  Questions answered by a later session are annotated inline in §17.
 - `WORKFLOW_SPRINGBOARD.md` — workflow and bootstrap assumptions.
   Questions settled by a later session are annotated inline.
+- `BRIEF_<description>.md` — implementation briefs.
+  A contract for one piece of work, and an authority only while the user names it for the current task.
+  A brief whose work has landed is a spent record: leave it, do not update it.
 - `WINDOWS_INIT_SESSION.md` — spent bootstrap brief, kept as history.
   Not maintained, not guidance.
 
 Both springboards are working hypotheses.
 Repository evidence outranks either document.
+
+When a session changes something worth remembering, record it where it belongs rather than in a new file:
+a verified environment or baseline fact goes in `ENVIRONMENT.md`, a plan or a deferral goes in `ROADMAP.md`, and what happened goes in `CHANGELOG.md`.
 
 ## Instruction precedence
 

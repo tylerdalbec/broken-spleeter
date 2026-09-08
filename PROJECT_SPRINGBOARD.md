@@ -999,6 +999,27 @@ These questions are intentionally left unresolved.
 - Are there graph/session constraints that make runtime mutation awkward?
 - Is TensorFlow eager execution involved anywhere relevant, or is this effectively TF1-style graph execution?
 
+> **Mostly resolved 2026-09-08** by direct inspection and a live probe.
+>
+> **Interception point:** `EstimatorSpecBuilder.masks` — a lazy cached property in `spleeter/model/__init__.py`, alongside `masked_stfts`, `model_outputs` and `stft_feature`.
+> Masks arrive post-extension at full STFT resolution, `(frames, 2049, 2)` float32 in `[0.0, 1.0]` per instrument.
+>
+> **Without duplicating the separator path:** yes.
+> `Separator._get_builder()`, `_get_features()` and `_get_session()` are unreachable from `separate()` — vestigial code that nonetheless builds the graph against placeholders and restores the checkpoint with a plain `Saver`.
+> Built by hand this way, output is **bit-identical** to the `tf.estimator` path, so abandoning the estimator costs nothing in baseline fidelity.
+>
+> **BatchNorm parameters:** `gamma`, `beta`, `moving_mean`, `moving_variance` — 96 of 148 global variables.
+>
+> **Graph/session constraints:** execution is TF1-style graph mode throughout, via `tf.compat.v1`.
+> The awkwardness is entirely `tf.estimator`, which builds and owns its own graph and session and returns only finished waveforms.
+> Holding the session directly removes the constraint.
+>
+> **Eager execution:** not involved.
+> `tf.compat.v1.disable_eager_execution()` is required before building the graph.
+>
+> **Still open:** how the two U-Net instances are named in checkpoints, whether corresponding vocal/accompaniment tensors are shape-compatible, and whether encoder/decoder blocks can be addressed robustly by name.
+> Variable names are flat Keras autonumbering (`conv2d/kernel:0`, `batch_normalization/gamma:0`) with no semantic scoping, which suggests structural targeting will have to derive from ordering rather than name — indicated by the first several variables, not yet enumerated across all 148.
+
 ## Model mutation
 
 - Is it cleaner to mutate checkpoint tensors before graph restoration or assign new values after restore?
@@ -1007,6 +1028,13 @@ These questions are intentionally left unresolved.
 - How should unsupported/mismatched mutation recipes fail?
 - Is mutation-on-load fast enough for interactive preview work?
 - Is caching mutated models worthwhile?
+
+> **Partly resolved 2026-09-08.**
+> Assign after restore, not checkpoint rewriting.
+> All 148 variables are addressable on the live session, so a mutation is an assignment at load time — which makes §6.2's "original checkpoint + recipe + seed = mutant model" work without materializing mutant checkpoints at all.
+>
+> **Still open:** everything about mutation representation, semantic versus explicit targeting, failure behavior for mismatched recipes, and whether mutation-on-load is fast enough for interactive preview.
+> Those need measurement against a real implementation.
 
 ## Activation hooks
 
@@ -1022,6 +1050,20 @@ These questions are intentionally left unresolved.
 - Which mask representation gives the easiest support for temporal/frequency displacement?
 - How should mask values outside the nominal range be treated?
 - Should reconstruction clamp them, normalize them, or deliberately allow pathological values?
+
+> **Resolved 2026-09-08** by the A2 spike.
+>
+> **Corruption happens in NumPy, outside the graph.**
+> The mask stage is split by a `placeholder_with_default` spliced between the estimated mask and reconstruction, so a mask can be fetched, modified as an ordinary array, and fed back.
+> Leaving it unfed passes the model's own estimate through, which makes bypass structural rather than a code path that has to be kept honest — verified bit-identical to the recorded CLI baseline.
+>
+> **It does not hurt performance; it helps.**
+> Feeding a mask prunes the U-Net from the second run, because TensorFlow does not execute ops whose consumers are all fed.
+> Reconstruction-only rendering measured **0.33 s against 3.42 s** for a full render of `audio_example.mp3`, so a sweep that analyzes once and re-renders many corruptions costs roughly a tenth per variation.
+> This makes the sweep workflow in §18 substantially cheaper than a naive implementation would be, and it argues against in-graph corruption, which would have to re-run the network for every parameter value.
+>
+> **Still open:** which mask representation best supports temporal and frequency displacement, and how out-of-range mask values should be treated.
+> Nothing prevents pathological values from reaching reconstruction today; whether to clamp, normalize, or deliberately allow them is a musical question rather than a technical one.
 
 ## Preview and performance
 
