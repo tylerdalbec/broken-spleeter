@@ -231,6 +231,11 @@ Subcommands:
 `time_shift` sweeps are natural in milliseconds and `PROJECT_SPRINGBOARD.md` §18 specifies them that way, but the recipe stores frames.
 Accept `--unit ms` on `sweep`, convert using `frame_step` from the model config and the sample rate, and **write the resolved frame count into each emitted recipe** so the artifact on disk is unambiguous.
 
+Round to the nearest frame.
+One frame is about 23.2 ms at 2stems settings, so values below that can collapse: 0 ms and 10 ms both resolve to 0 frames.
+When two or more requested values resolve to the same frame count, `sweep` must print a warning naming them, then render them anyway.
+Do not deduplicate silently, and do not implement sub-frame shifting — that is a new operation and out of scope.
+
 ### 5.4 Sweep output
 
 Every rendered variation must be self-describing.
