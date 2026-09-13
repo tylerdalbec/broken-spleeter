@@ -19,7 +19,7 @@ The experimental substance.
 Environment, verified ordinary separation, inherited test suite, and the map of where interventions can attach.
 Completed 2026-09-02 and 2026-09-08.
 
-### A2 — Mask manipulation slice — **in progress**
+### A2 — Mask manipulation slice — **done**
 
 The first vertical slice, script-driven.
 Covers springboard §6.1 and §18 experiments 1–3.
@@ -29,18 +29,16 @@ Deliberately ahead of the GUI: controls cannot be designed for knobs nobody has 
 `broken/` owns its graph and session, splices a feedable tensor into the mask stage, and validates fed masks before they reach reconstruction.
 Bypass is bit-identical to the recorded baseline and structural rather than asserted.
 
-**Remaining** — specified in `BRIEF_MASK_MANIPULATION.md`, and mechanical enough to delegate:
+**Landed 2026-09-13** — the remainder of the slice (`BRIEF_MASK_MANIPULATION.md`).
+- Eight mask operations in `broken/masks.py`: contrast, gain/bias, threshold, quantize, time shift, frequency shift, complement blend, and Gaussian noise.
+- Pure float32 NumPy array contract preserving un-clamped values until final recipe stage.
+- Recipe representation in `broken/recipe.py` with ordered operations, validation, JSON serialization, and deterministic seeding.
+- CLI in `broken/__main__.py` (`python -m broken`) with `render`, `sweep`, and `verify-bypass`.
+- Sweep runner reuses a single `estimate_masks` analysis across all variations, cutting per-variation render time to ~0.4 s on CPU.
+- Unit tests in `tests/test_broken_masks.py` covering operations, edge cases, shifts, seeding, and recipe round-trips.
 
-- the rest of the mask operations — contrast/exponent, gain/bias, threshold, quantization, frequency displacement, inversion and complement blending
-- a recipe representation with explicit seeding, serialized to JSON
-- a CLI entry point and a sweep runner for §18 experiments 1–3
-- turning the spike's bypass check into a repeatable verification, which overlaps B3
-- declaring `broken` in the `pyproject.toml` `packages` list
-  It currently imports only because the editable install of `spleeter` puts the repository root on `sys.path`, which is incidental and would not survive a built distribution.
-  Touching packaging is a deliberate change, not cleanup — see the deferred PEP 621 item.
-
-Sweeps should reuse one analysis via `BrokenSeparator.estimate_masks` and the `masks=` argument.
-Feeding a mask prunes the network from the render, so a variation costs roughly a tenth of a full pass.
+Declaring `broken` in the `pyproject.toml` `packages` list was not done, since the brief kept packaging files untouched.
+It is carried under the PEP 621 migration item below.
 
 ### A3 — Musical triage
 
@@ -48,6 +46,12 @@ Listen to the A2 sweeps and decide which corruption families deserve first-class
 This is a judgment call about sound, not an engineering task, and it is the point of A2.
 
 Depends on B2.
+
+Things to listen for are recorded in `CHANGELOG.md` under 2026-09-13, "Observations for A3".
+One of them is an open design question rather than a sound: a `noise` op applies the identical realization to every stem.
+Whether stems should get independent noise is best settled by ear.
+
+Sweep and listening work needs only the fast test tier in `AGENTS.md`, not the full suite.
 
 ### A4 — Checkpoint, weight and BatchNorm corruption
 
@@ -106,7 +110,16 @@ Blocks A3 meaningfully, and does not block A2.
 The inherited suite tests ordinary Spleeter, not deliberate failure.
 What a passing test should mean once corruption exists is unsettled, as is whether render verification stays manual.
 
-Revisit when A2 lands and there is something whose correctness is not obvious by listening.
+**Interim test split, 2026-09-13.**
+The full suite takes about 4 minutes, nearly all of it inherited tests of ordinary Spleeter that `broken/` work cannot affect.
+Agents run a fast tier by default — the `tests/test_broken_*.py` files plus lint, about 5 seconds — and the full suite only when something upstream of inference changes.
+The rule lives in `AGENTS.md`.
+It is convention, not tooling: `pytest tests/` still runs everything.
+
+Open: whether to enforce the split with a pytest marker or default `addopts` so the slow tests become opt-in, and whether any milestone, such as marking a roadmap item done, should require a full run.
+
+The original trigger — A2 landing — has fired.
+**Revisit when** the full suite's cost or a wrongly skipped full run causes real friction, or when a corruption exists whose correctness is not obvious by listening.
 
 ### B4 — Architecture reference
 
@@ -155,6 +168,11 @@ Nothing to distribute.
 `pyproject.toml` uses legacy `[tool.poetry]` metadata.
 Poetry 2.x supports it; `poetry check` warns per field.
 Migration changes how the distribution name, version, extras and console scripts are declared, and `spleeter --version` resolves through `importlib.metadata.version("spleeter")`.
+
+`broken` is not declared in the `packages` list either.
+It imports only because the editable install of `spleeter` puts the repository root on `sys.path`, which is incidental and would not survive a built distribution.
+`python -m broken` from the repository root works regardless, since the working directory is on `sys.path`.
+Declare it as part of this migration rather than as a separate packaging change.
 
 **Revisit when** the warnings become real friction, or packaging is needed.
 Verification steps are recorded in `ENVIRONMENT.md` §7.

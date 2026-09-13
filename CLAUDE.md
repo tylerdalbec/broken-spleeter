@@ -101,16 +101,32 @@ Two things that surprise people:
 
 ## Verification
 
-Confirmed on Windows 11, 2026-09-02, with the venv activated:
+Two tiers, chosen by what changed.
+
+**Fast — the default.**
+Use it for changes confined to `broken/`, its tests, or documentation.
+About 5 seconds; builds no model.
+
+```bash
+pytest tests/test_broken_masks.py tests/test_broken_cli.py
+black broken spleeter --check
+isort broken spleeter --check
+flake8 broken
+```
+
+**Full — only when something upstream of inference changes:** a dependency or the TensorFlow pin, anything under `spleeter/`, model loading, or FFmpeg.
 
 ```bash
 pytest tests/
-black spleeter --check
-isort spleeter --check
 spleeter separate -p spleeter:2stems -o output audio_example.mp3
+python -m broken verify-bypass audio_example.mp3
 ```
 
-All pass.
+The full suite takes about 4 minutes on CPU, nearly all of it inherited tests that separate real audio across three models and run a training loop.
+Do not run it as routine verification for `broken/` work.
+The split is interim; roadmap B3 owns the policy.
+
+Both tiers confirmed passing on Windows 11, 2026-09-13, with the venv activated.
 `pytest tests/` downloads the 2stems, 4stems and 5stems checkpoints on first run (~417 MB); `pytest tests/test_separator.py -k 2stems` avoids the larger two.
 
 `--forked` was removed from the pytest `addopts` — `pytest-forked` needs `os.fork()`, which does not exist on Windows.

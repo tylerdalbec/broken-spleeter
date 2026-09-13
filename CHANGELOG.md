@@ -11,6 +11,96 @@ Historical entries are records and are not rewritten.
 
 ---
 
+## 2026-09-13 — Mask manipulation slice complete (roadmap A2)
+
+Implemented `BRIEF_MASK_MANIPULATION.md`.
+Delivers controllable, reproducible mask corruption operations, JSON recipe representation, CLI entry points, and pure NumPy unit tests.
+
+### Added — Mask operations (`broken/masks.py`)
+
+- Implemented eight pure float32 mask operations: `contrast`, `gain_bias`, `threshold`, `quantize`, `time_shift`, `freq_shift`, `complement_blend`, and `noise`.
+- Preserved values outside `[0.0, 1.0]` across operations; clamping is optional and applied only at the end of the recipe pipeline.
+- Implemented edge-wrapping (`wrap=True`) and zero-fill (`wrap=False`) displacement semantics for both time and frequency shifts, handling shifts exceeding axis lengths.
+- Added input validation ensuring all operations reject non-positive gammas, negative softness, levels below 2, and non-integer shift or quantization parameters.
+
+### Added — Recipe representation (`broken/recipe.py`)
+
+- Structured dataclasses (`MaskOp`, `MaskConfig`, `Recipe`) with bidirectional JSON serialization and file I/O helpers (`load_recipe`, `save_recipe`).
+- Preserves explicit operation ordering and rejects unknown operation names or parameters with informative errors.
+- Added deterministic seeding: explicit operation-level seeds win; otherwise seeds derive deterministically from `recipe.seed` and the operation's chain index.
+- Structural bypass enforcement: recipes with `enabled: false` or an empty operations list bypass mask feeding entirely.
+
+### Added — CLI interface (`broken/__main__.py`)
+
+- Invoked via `python -m broken` without modifying package console scripts.
+- `render INPUT --recipe R.json -o DIR`: renders audio through the specified recipe.
+- `sweep INPUT --op OP --param NAME --values V1,V2,... -o DIR [--recipe BASE.json]`: sweeps parameter values, executing `estimate_masks` once and pruning the U-Net for subsequent variations (~0.4 s per variation on CPU).
+- Millisecond conversion support via `--unit ms` for `time_shift`, converting to frame counts using the model configuration's `frame_step` and sample rate with warnings for collapsed frame values.
+- `verify-bypass INPUT`: renders uncorrupted baseline audio via structural bypass and compares SHA-256 stem checksums against reference values.
+
+### Added — Verification & tests (`tests/test_broken_masks.py`)
+
+- 22 fast unit tests verifying arithmetic correctness, float32 dtypes, input immutability, boundary shifts, noise seeding, recipe serialization round-trips, and error validation.
+- All 22 tests pass in ~3.5 s without requiring model downloads or network access.
+- Confirmed `verify-bypass audio_example.mp3` bit-identically reproduces the recorded CPU baseline hashes in `ENVIRONMENT.md` §3.4.
+
+### Fixed — review against the brief
+
+- A `noise` op without its own seed serialized as `"seed": null`, which the loader rejected, so every recipe emitted by a noise sweep failed in `render`.
+  `seed` is now accepted only on `noise`, and is omitted when absent.
+- `noise` drew a float32 normal stream, which differs from the brief's default float64 draw for the same seed.
+  It now matches §5.1, before any noise recipes were kept.
+- Millisecond sweep values resolving to the same frame count wrote to the same directory, the later overwriting the earlier.
+  Labels now carry the requested value, e.g. `time_shift.frames=0_10ms`, and any sweep whose values would still produce duplicate labels is rejected before rendering.
+- Sweeping onto a base recipe with `mask.enabled: false` silently rendered bypass under corrupted labels; it now fails with an error.
+
+### Added — closing gaps in the brief
+
+- `sweep --set NAME=VALUE`, repeatable, holds other parameters of the swept op fixed.
+  Without it, `time_shift` with `wrap=true`, `threshold.softness` and `noise.seed` could not be swept at all.
+  Booleans accept only `true` or `false`, and every variation's op is validated before any audio is loaded.
+- Recipes carry an optional `"audio": {"offset", "duration"}` block, written by `sweep`, so an emitted recipe re-renders the same excerpt.
+  Explicit `--offset` / `--duration` flags override it.
+- `tests/test_broken_cli.py` covers argument parsing and the sweep checks that run before a model is built.
+
+### Documentation
+
+- Split verification into a fast tier (`tests/test_broken_*.py` plus lint, about 5 seconds) and the full suite (about 4 minutes), recorded in `AGENTS.md` / `CLAUDE.md` and `ENVIRONMENT.md` §3.3.
+  The full suite is for changes upstream of inference; the policy question is parked in roadmap B3.
+
+### Observations for A3
+
+From the implementer's brief §8 report, checked against the code, with corrections noted.
+None of this has been listened to; these are things to listen for, not findings.
+
+- **Noise is identical across stems.**
+  A `noise` op resolves one seed and applies it to every stem's mask, so vocals and accompaniment receive the same realization.
+  Independent noise would need a per-stem seed, for example derived from the stem name.
+  Which is more useful is undecided.
+- **Unclamped values reach reconstruction.**
+  Mask values above 1 boost their bins and can push a stem past full scale, where WAV output is likely to clip (not verified).
+  Negative values invert the phase of the affected bins.
+- **Everything above about 11 kHz is already zero in the mask.**
+  The 2stems model estimates the lower 1024 of 2049 bins, and `mask_extension: "zeros"` fills the rest.
+  `complement_blend` near 1, or a positive `gain_bias` bias, opens that band in every stem.
+- **Frequency shift interacts with that zero band**, which the implementer's report missed; it expected upward wrap to fold high-frequency content into the lows.
+  Positive shift: the lowest bins go silent and the mask slides up into the band above 11 kHz.
+  For shifts up to 1025 bins, `wrap=true` and `wrap=false` produce identical masks, since what wraps around is the zero band.
+  Negative shift: the zero band slides down, cutting the top of the spectrum below 11 kHz; with `wrap=true` the lowest bins' mask values land above 11 kHz.
+- **Frequency bins are linear, about 10.8 Hz each**, so a fixed bin shift is a large interval in the bass and a small one in the treble.
+- **Time shift fill modes.**
+  Zero fill gates the start of the file (positive) or the end (negative); wrap folds the end onto the start or the reverse.
+  Resolution is one frame, about 23.2 ms at 2stems settings.
+- **The soft threshold has hard corners** at the ends of its linear ramp; the implementer expects audible chatter compared with a smooth curve such as a sigmoid.
+- **Contrast with gamma below 1 lifts low mask values steeply**, likely raising the bleed Spleeter leaves in quiet regions.
+
+### Not done
+
+- `broken` is still not declared in `pyproject.toml`; the brief kept packaging files untouched.
+  Carried under the PEP 621 item in `ROADMAP.md`.
+
+---
+
 ## 2026-09-08 — Inference path mapped, documentation scaffold
 
 No source changes.

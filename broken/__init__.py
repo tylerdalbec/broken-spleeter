@@ -10,6 +10,7 @@ every intervention is bypassable: with no corruption configured, output is
 bit-identical to unmodified Spleeter.
 """
 
+from .recipe import Recipe, load_recipe, save_recipe
 from .separator import BrokenSeparator
 
-__all__ = ["BrokenSeparator"]
+__all__ = ["BrokenSeparator", "Recipe", "load_recipe", "save_recipe"]

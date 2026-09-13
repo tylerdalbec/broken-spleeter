@@ -119,11 +119,22 @@ On first run this downloads the `2stems` checkpoint (~76 MB); expect roughly 20 
 
 ### 3.3 Tests
 
+Fast tier, covering `broken/` — about 5 seconds, no model build, no checkpoints:
+
+```powershell
+pytest tests/test_broken_masks.py tests/test_broken_cli.py
+```
+
+Full suite:
+
 ```powershell
 pytest tests/
 ```
 
-The full inherited suite passes.
+Passes in about 4 minutes on CPU (68 tests, 2026-09-13).
+Nearly all of that time is inherited tests: `test_separator.py` separates real audio for every model and input combination, and `test_train.py` runs a training loop.
+Which tier to run when is recorded in `AGENTS.md`.
+
 Individual areas:
 
 ```powershell
