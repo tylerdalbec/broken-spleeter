@@ -10,9 +10,11 @@ It is not a better stem separator, not a realtime plugin, and not a production s
 
 ## Status
 
-Early bootstrap.
-No Broken Spleeter functionality exists yet — the repository currently contains the inherited Spleeter runtime plus project documentation.
-The immediate next step is establishing a working local environment and a verified ordinary Spleeter baseline.
+The first mask-manipulation slice is implemented as an offline command-line prototype.
+It supports eight mask operations, JSON recipes, parameter sweeps, and a structural bypass path that preserves ordinary Spleeter inference.
+The next roadmap step is musical triage of those sweeps, after choosing more representative test audio.
+The planned desktop GUI and other model-corruption experiments are not implemented yet.
+See [`ROADMAP.md`](ROADMAP.md) for current plans and [`CHANGELOG.md`](CHANGELOG.md) for completed work.
 
 ## Relationship to Spleeter
 
@@ -45,28 +47,30 @@ Pretrained model checkpoints are distributed by Deezer under their own terms and
 |---|---|
 | [`PROJECT_SPRINGBOARD.md`](PROJECT_SPRINGBOARD.md) | Technical and product concept — design context, not a specification |
 | [`WORKFLOW_SPRINGBOARD.md`](WORKFLOW_SPRINGBOARD.md) | Development workflow and bootstrap assumptions |
-| [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) | Instructions for coding agents (byte-identical mirrors) |
+| [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md) | Instructions for coding agents; `CLAUDE.md` imports `AGENTS.md` and adds a Claude Code-specific section |
 
 Both springboards are working hypotheses.
 Where repository evidence contradicts them, the repository wins.
 
 ## Environment
 
-Not yet established.
-The inherited stack pins `tensorflow==2.12.1`, which constrains the project to **Python 3.11 or older** — the workstation's default interpreter cannot be used directly.
-`ffmpeg` must be available on `PATH`.
-Pretrained checkpoints are downloaded on first use into `pretrained_models/` (gitignored).
+Verified on Windows 11 with Python 3.11, TensorFlow 2.12.1, Poetry 2.x, and FFmpeg on `PATH`.
+The project environment lives in `.venv/`; Windows inference runs on CPU with this TensorFlow version.
+Pretrained checkpoints download on first use into `pretrained_models/` (gitignored).
+See [`ENVIRONMENT.md`](ENVIRONMENT.md) for setup, verified commands, and platform details.
 
-Setting up a reproducible local environment is the subject of the next session.
+## Commands
 
-## Inherited baseline commands
+Run ordinary Spleeter separation:
 
-Recorded from upstream CI before it was removed.
-**These have not been verified in this project yet** and are kept only as a starting point for local setup:
+```powershell
+spleeter separate -p spleeter:2stems -o output audio_example.mp3
+```
 
-```bash
-poetry install
-poetry run pytest tests/
+Inspect the Broken Spleeter command-line interface from the repository root:
+
+```powershell
+python -m broken --help
 ```
 
 `audio_example.mp3` and `audio_example_mono.mp3` in the repository root are fixtures used by the inherited test suite.

@@ -122,6 +122,11 @@ It should eventually either:
 
 ### `AGENTS.md` and `CLAUDE.md`
 
+> **Superseded 2026-10-12.**
+> The two files are no longer byte-identical mirrors.
+> `AGENTS.md` is the single source of agent instructions; `CLAUDE.md` imports it with `@AGENTS.md` and adds only a Claude Code-specific section.
+> Every later reference in this document to mirrored or byte-identical agent files reads against this note; a mirrored skill tree was never created.
+
 These files are required because Codex and Claude Code are both first-class development agents for the project.
 
 They should be **byte-identical mirrors**.

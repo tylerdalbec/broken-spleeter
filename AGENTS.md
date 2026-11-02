@@ -1,8 +1,8 @@
 # Broken Spleeter — Agent Instructions
 
-> `AGENTS.md` and `CLAUDE.md` are byte-identical mirrors.
-> Any edit to one must be applied identically to the other.
-> Verify with `diff AGENTS.md CLAUDE.md` before committing.
+> `AGENTS.md` is the single source of agent instructions.
+> `CLAUDE.md` imports it with `@AGENTS.md` and adds only a Claude Code-specific section.
+> Edit shared instructions here, not in `CLAUDE.md`.
 
 ## What this project is
 

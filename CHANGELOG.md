@@ -11,6 +11,17 @@ Historical entries are records and are not rewritten.
 
 ---
 
+## 2026-10-12 — Agent instruction files no longer mirrored
+
+### Changed — Agent instructions
+
+- `AGENTS.md` is now the single source of agent instructions; `CLAUDE.md` imports it with `@AGENTS.md` instead of mirroring it byte-for-byte.
+- Added a `## Claude Code Specific` section to `CLAUDE.md` covering the Claude desktop app's AppData redirect and the Windows platform-marker details.
+- Updated the `README.md` documentation table to match.
+- Annotated `WORKFLOW_SPRINGBOARD.md` §`AGENTS.md` and `CLAUDE.md` as superseded.
+
+---
+
 ## 2026-09-13 — Mask manipulation slice complete (roadmap A2)
 
 Implemented `BRIEF_MASK_MANIPULATION.md`.
