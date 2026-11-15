@@ -1,0 +1,28 @@
+# Minimal on purpose.
+# torch and demucs are not declared yet: choosing the CUDA wheel index has to be
+# done and verified on the Windows workstation (ROADMAP.md, P1).
+
+[project]
+name = "broken-stems"
+version = "0.0.0"
+description = "Offline sound-design tool that abuses stem-separation models."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+    "flake8",
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

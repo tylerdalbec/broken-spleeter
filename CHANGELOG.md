@@ -11,6 +11,33 @@ Historical entries are records and are not rewritten.
 
 ---
 
+## 2026-11-15 — Project rebooted outside this repository
+
+A review of the concept and plan concluded that the project should restart on PyTorch with Demucs as the first model, in a new repository.
+No source under `broken/` or `spleeter/` was changed.
+
+### Decided
+
+- Stem-separation abuse is the goal; Spleeter was only the familiar starting point, and divergence from upstream does not matter.
+- Every Spleeter output is a real mask applied to the mixture STFT with the mixture's phase, so no model-internal corruption can add energy that is not in the mix.
+  Six of the eight A2 mask operations are pointwise remaps of that filter gain.
+- The TensorFlow 2.12 pin, the bit-identical baseline, and the Windows GPU deferral all served upstream fidelity, which the project does not need.
+- This repository is to be archived as a reference.
+  The inference-path findings under 2026-09-08 remain useful if the Spleeter weights are ever ported.
+
+### Added — `seed/`
+
+A self-contained starting tree for the new repository, to be copied out and then deleted from here.
+
+- `broken/masks.py`, `broken/recipe.py` and `tests/test_broken_masks.py`, copied unchanged.
+- Fresh `AGENTS.md`, `CLAUDE.md`, `CONCEPT.md`, `ROADMAP.md`, `ENVIRONMENT.md`, `CHANGELOG.md`, `README.md`, and a minimal `pyproject.toml`.
+- `seed/CONCEPT.md` holds the full reasoning, including what went wrong with this plan.
+
+Verified in a Linux cloud container: the seed's 27 tests and its lint checks pass on Python 3.13 and NumPy 2.x.
+This repository's own test tiers were not run; the environment has no TensorFlow, and nothing they cover changed.
+
+---
+
 ## 2026-10-12 — Agent instruction files no longer mirrored
 
 ### Changed — Agent instructions
