@@ -7,7 +7,7 @@ name = "broken-stems"
 version = "0.0.0"
 description = "Offline sound-design tool that abuses stem-separation models."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "numpy",
 ]

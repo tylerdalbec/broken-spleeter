@@ -39,6 +39,26 @@ Nothing was installed or executed.
 
 Architecture facts from the same reading are in `CONCEPT.md` section 7.
 
+### Windows wheel availability by Python version
+
+Checked 2026-11-15 against PyPI's file listings for the latest release of each package.
+Nothing was installed on Windows.
+
+| Package | Version | Requires Python | `win_amd64` wheels |
+|---|---|---|---|
+| `torch` | 2.15.0 | >= 3.11 | 3.11 to 3.15 |
+| `numpy` | 2.5.4 | >= 3.12 | 3.12 to 3.15 |
+| `lameenc` | 1.9.0 | >= 3.10 | 3.10 to 3.15 |
+| `sphn` | 0.2.1 | >= 3.8 | 3.10 to 3.14 |
+| `safetensors` | 0.8.0 | >= 3.10 | stable ABI, any supported version |
+| `PySide6` | 6.12.0 | >= 3.10, < 3.16 | stable ABI, any supported version |
+
+Python 3.12, 3.13 and 3.14 are each covered by every package.
+`pyproject.toml` therefore declares `requires-python = ">=3.12"`: a wider range would make the resolver hold `torch` and `numpy` back to releases that still support older interpreters.
+
+The `torch` row is PyPI's listing, which on Windows is the CPU build.
+PyTorch's own CUDA wheel index could not be reached from the container, so CUDA wheels for a given Python version are unverified.
+
 ### The workstation, as of the prototype
 
 Carried from the prototype's environment record, last verified there 2026-09-13.
@@ -56,8 +76,10 @@ Not re-verified for this project.
 Roadmap item P1 owns all of this.
 
 - **Python version.**
-  Any version from 3.10 that both `torch` and `demucs` support on Windows.
-  The prototype used 3.11.
+  3.12, 3.13 or 3.14; see the wheel table in section 1.
+  The system 3.14 is a reasonable first choice, with a uv-managed 3.13 as the fallback if `demucs` misbehaves at runtime.
+  Pin the choice with `uv python pin`, so the project does not change interpreter when the system Python is upgraded.
+  The prototype's 3.11 no longer satisfies `requires-python`.
 - **PyTorch with CUDA.**
   The CUDA builds are served from PyTorch's own wheel index, not from PyPI's default.
   Pin the index in `pyproject.toml` so a fresh install cannot silently resolve to a CPU build.
