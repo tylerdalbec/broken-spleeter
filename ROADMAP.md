@@ -1,5 +1,10 @@
 # Roadmap
 
+> **Retired 2026-11-15.**
+> The project was rebooted on a different model and framework in a new repository; see the 2026-11-15 entry in `CHANGELOG.md`.
+> Nothing below is planned any longer.
+> It is kept as a record, and item IDs here are not reused by the new roadmap.
+
 Intent, not commitment.
 Ordering changes when experiments reveal a more productive direction — that is the expected behavior for this project, not a failure of planning.
 
